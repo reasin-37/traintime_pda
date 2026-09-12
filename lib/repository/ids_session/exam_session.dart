@@ -136,7 +136,7 @@ class ExamSession extends IDSSession {
 
   Future<ExamData> _getExamYjspt(String semester) async {
     final location = await checkAndLogin(
-      target: "https://yjspt.xidian.edu.cn/gsapp/sys/wdksapp/*default/index.do",
+      target: "https://graduate.shanghaitech.edu.cn/gsapp/sys/wdksapp/*default/index.do",
       sliderCaptcha: (String cookieStr) =>
           SliderCaptchaClientProvider(cookie: cookieStr).solve(),
     );
@@ -147,7 +147,7 @@ class ExamSession extends IDSSession {
     log.info("[ExamFile][getExamYjspt] My exam arrangemet $semester");
     var data = await dio
         .post(
-          "https://yjspt.xidian.edu.cn/gsapp/sys/wdksapp/modules/ksxxck/wdksxxcx.do",
+          "https://graduate.shanghaitech.edu.cn/gsapp/sys/wdksapp/modules/ksxxck/wdksxxcx.do",
           queryParameters: {
             "querySetting":
                 '''[

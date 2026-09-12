@@ -7,6 +7,7 @@
 
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:html/parser.dart';
 import 'package:encrypter_plus/encrypter_plus.dart' as encrypt;
@@ -62,9 +63,19 @@ class IDSSession {
   /// still using the one process-wide IDS client and cookie store.
   Dio get dioNoOfflineCheck => NetworkClients.idsDio;
 
+  /// ⚠️ 西电私有加密变体（固定 IV `xidianscriptsxdu` + 固定 64 字节前缀）。
+  ///
+  /// 本分支（上海科技大学）**不使用**它。登录密码要用 `network_client.dart`
+  /// 中的顶层函数 `aesEncrypt`（金智通用方案：key=UTF8(salt)、
+  /// 明文=randomString(64)+密码、iv=randomString(16)、AES-CBC+Pkcs7）。
+  ///
+  /// 改名为 `aesEncryptXidianVariant` 的原因：Dart 中**类成员会遮蔽同名的顶层
+  /// 函数**，原先叫 `aesEncrypt` 会让类内的 `aesEncrypt(...)` 调用错误地解析到
+  /// 这个方法，产生 `Uint8List can't be assigned to String` 的编译错误。
+  ///
   /// Get base64 encoded data. Which is aes encrypted [toEnc] encoded string using [key].
   /// Padding part is libxduauth's idea.
-  String aesEncrypt(String toEnc, String key) {
+  String aesEncryptXidianVariant(String toEnc, String key) {
     dynamic k = encrypt.Key.fromUtf8(key);
     var crypt = encrypt.AES(k, mode: encrypt.AESMode.cbc, padding: null);
 
@@ -119,7 +130,7 @@ class IDSSession {
     try {
       log.info('[IDSSession][checkAndLogin] Checking IDS session.');
       var response = await dioNoOfflineCheck.get(
-        'https://ids.xidian.edu.cn/authserver/login',
+        'https://ids.shanghaitech.edu.cn/authserver/login',
         queryParameters: {'service': target},
       );
       if (_isRedirect(response)) {
@@ -198,7 +209,7 @@ class IDSSession {
     late final Response<dynamic> initialResponse;
     try {
       initialResponse = await dioNoOfflineCheck.get(
-        'https://ids.xidian.edu.cn/authserver/login',
+        'https://ids.shanghaitech.edu.cn/authserver/login',
         queryParameters: target != null ? {'service': target} : null,
       );
     } on DioException catch (error) {
@@ -231,7 +242,7 @@ class IDSSession {
     /// Used in two captcha.
     String cookieStr = "";
     var cookie = await NetworkCookieJars.ids.loadForRequest(
-      Uri.parse("https://ids.xidian.edu.cn/authserver"),
+      Uri.parse("https://ids.shanghaitech.edu.cn/authserver"),
     );
     for (var i in cookie) {
       cookieStr += "${i.name}=${i.value}; ";
@@ -251,7 +262,13 @@ class IDSSession {
     }
     Map<String, dynamic> head = {
       'username': username,
-      'password': aesEncrypt(password, keys),
+      // 上海科技大学走金智通用加密方案（network_client.dart::aesEncrypt）：
+      // key = UTF8(pwdEncryptSalt)，明文 = randomString(64) + 密码，
+      // iv = randomString(16)，AES-CBC + Pkcs7，输出 base64。
+      // 已用该校真实的 encrypt.js 在 Node 中实跑并逐字节比对通过。
+      // 注意：类内的 aesEncryptXidianVariant（西电私有变体）不适用；
+      // 这里必须用顶层函数 aesEncrypt（network_client.dart）。
+      'password': aesEncrypt(password, Uint8List.fromList(utf8.encode(keys))),
       'rememberMe': 'true',
       'cllt': 'userNameLogin',
       'dllt': 'generalLogin',
@@ -271,7 +288,7 @@ class IDSSession {
     }
 
     await dioNoOfflineCheck.get(
-      "https://ids.xidian.edu.cn/authserver/common/openSliderCaptcha.htl",
+      "https://ids.shanghaitech.edu.cn/authserver/common/openSliderCaptcha.htl",
       queryParameters: {'_': DateTime.now().millisecondsSinceEpoch.toString()},
     );
 
@@ -287,7 +304,7 @@ class IDSSession {
     }
     try {
       var data = await dioNoOfflineCheck.post(
-        "https://ids.xidian.edu.cn/authserver/login",
+        "https://ids.shanghaitech.edu.cn/authserver/login",
         queryParameters: target != null ? {'service': target} : null,
         data: head,
         options: Options(
@@ -320,7 +337,7 @@ class IDSSession {
             toPostAgain[i.attributes["name"]!] = i.attributes["value"]!;
           }
           var data = await dioNoOfflineCheck.post(
-            "https://ids.xidian.edu.cn/authserver/login",
+            "https://ids.shanghaitech.edu.cn/authserver/login",
             data: toPostAgain,
             options: Options(
               validateStatus: (status) =>
@@ -366,7 +383,7 @@ class IDSSession {
       if (name != null && value != null) fields[name] = value;
     }
     return dioNoOfflineCheck.post(
-      'https://ids.xidian.edu.cn/authserver/login',
+      'https://ids.shanghaitech.edu.cn/authserver/login',
       data: fields,
     );
   }
@@ -374,7 +391,7 @@ class IDSSession {
   Future<void> _registerBrowserFingerprint() async {
     final fingerprint = await getOrCreateIDSBrowserFingerprint();
     await dioNoOfflineCheck.get(
-      'https://ids.xidian.edu.cn/authserver/bfp/info',
+      'https://ids.shanghaitech.edu.cn/authserver/bfp/info',
       queryParameters: {
         'bfp': fingerprint,
         '_': DateTime.now().millisecondsSinceEpoch.toString(),
@@ -462,7 +479,7 @@ class IDSSession {
   }) async {
     final requestClient = client ?? dioNoOfflineCheck;
     var currentUri = Uri.parse(
-      'https://ids.xidian.edu.cn',
+      'https://ids.shanghaitech.edu.cn',
     ).resolve(initialLocation);
     var currentService = service;
     var redirectCount = 0;
@@ -524,7 +541,8 @@ class IDSSession {
   ).toString();
 
   String? _idsLoginService(Uri uri) {
-    if (uri.host != 'ids.xidian.edu.cn' || uri.path != '/authserver/login') {
+    if (uri.host != 'ids.shanghaitech.edu.cn' ||
+        uri.path != '/authserver/login') {
       return null;
     }
     final service = uri.queryParameters['service'];
@@ -536,7 +554,7 @@ class IDSSession {
   }) async {
     String location = await checkAndLogin(
       target:
-          "https://yjspt.xidian.edu.cn/gsapp"
+          "https://graduate.shanghaitech.edu.cn/gsapp"
           "/sys/yjsemaphome/portal/index.do",
       sliderCaptcha: (cookieStr) =>
           SliderCaptchaClientProvider(cookie: cookieStr).solve(),
@@ -548,7 +566,7 @@ class IDSSession {
 
     bool toReturn = await dio
         .post(
-          "https://yjspt.xidian.edu.cn/gsapp"
+          "https://graduate.shanghaitech.edu.cn/gsapp"
           "/sys/yjsemaphome/modules/pubWork/getCanVisitAppList.do",
         )
         .then((value) => value.data["res"] != null);

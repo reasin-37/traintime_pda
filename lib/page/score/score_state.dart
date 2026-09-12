@@ -169,9 +169,11 @@ class ScoreState extends ChangeNotifier {
   /// 2. Teacher have not finish uploading scores
   /// 3. Have score below 60 but passed.
   /// 4. Not first time learning this, but still failed.
+  /// 5. 上海科技大学规则：采用通过制（P/NP）的课程不计入 GPA / 均分。
   bool _evalCount(Score eval) =>
       !(eval.name.contains("国家英语四级") ||
           eval.name.contains("国家英语六级") ||
+          eval.isPassFailCourse ||
           !eval.isFinish ||
           (!eval.isPassed! && !unPassedSet.contains(eval.name)) ||
           (eval.scoreStatus != "初修" && !eval.isPassed!));

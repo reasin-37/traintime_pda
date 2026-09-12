@@ -62,11 +62,23 @@ abstract class NotificationService {
         requestSoundPermission: false,
       );
 
+      // Windows 端必须显式提供 windows 设置，否则插件会抛
+      // "Invalid argument(s): Windows settings must be set when targeting
+      // Windows platform"（见 flutter_local_notifications_plugin.dart:188）。
+      // 这三项都是 Windows 通知的身份标识，取值本身任意但必须**稳定不变**。
+      const WindowsInitializationSettings initializationSettingsWindows =
+          WindowsInitializationSettings(
+        appName: 'XDYou',
+        appUserModelId: 'io.github.benderblog.traintime_pda',
+        guid: 'e2a46a2e-21c9-49f0-b7b7-a2fca56c380e',
+      );
+
       const InitializationSettings initializationSettings =
           InitializationSettings(
         android: initializationSettingsAndroid,
         iOS: initializationSettingsDarwin,
         macOS: initializationSettingsDarwin,
+        windows: initializationSettingsWindows,
       );
 
       await flutterLocalNotificationsPlugin.initialize(

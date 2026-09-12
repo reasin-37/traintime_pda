@@ -9,7 +9,11 @@ import 'package:watermeter/repository/logger.dart';
 class SemesterSession extends IDSSession {
   Future<String> getSemesterInfoYjspt() async {
     final location = await checkAndLogin(
-      target: "https://yjspt.xidian.edu.cn/",
+      // 上海科技大学：CAS 的 service 参数用已实测确认注册过的门户地址
+      // （请求该地址会 302 到 ids.shanghaitech.edu.cn/authserver/login?service=…）。
+      // 原西电实现用的是裸域名 https://yjspt.xidian.edu.cn/
+      target:
+          "https://graduate.shanghaitech.edu.cn/gsapp/sys/yjsemaphome/portal/index.do",
       sliderCaptcha: (String cookieStr) =>
           SliderCaptchaClientProvider(cookie: cookieStr).solve(),
     );
@@ -26,7 +30,7 @@ class SemesterSession extends IDSSession {
     );
     var detailed = await dio
         .post(
-          "https://yjspt.xidian.edu.cn/gsapp/sys/yjsemaphome/modules/pubWork/getUserInfo.do",
+          "https://graduate.shanghaitech.edu.cn/gsapp/sys/yjsemaphome/modules/pubWork/getUserInfo.do",
         )
         .then((value) => value.data);
     if (detailed["code"] != "0") {

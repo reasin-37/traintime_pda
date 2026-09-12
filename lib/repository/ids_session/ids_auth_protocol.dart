@@ -1,12 +1,12 @@
 // Copyright 2026 Traintime PDA authors.
 // SPDX-License-Identifier: MPL-2.0
 
-const _idsOrigin = 'https://ids.xidian.edu.cn';
+const _idsOrigin = 'https://ids.shanghaitech.edu.cn';
 
 bool isIDSReAuthLocation(String location, {Uri? baseUri}) {
   final uri = (baseUri ?? Uri.parse(_idsOrigin)).resolve(location);
   return uri.scheme == 'https' &&
-      uri.host == 'ids.xidian.edu.cn' &&
+      uri.host == 'ids.shanghaitech.edu.cn' &&
       uri.path == '/authserver/reAuthCheck/reAuthLoginView.do';
 }
 

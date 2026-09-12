@@ -142,15 +142,15 @@ class ClassTableSession extends IDSSession {
     Map<String, dynamic> qResult = {};
 
     const classInfoURL =
-        "https://yjspt.xidian.edu.cn/gsapp/sys/wdkbapp/modules/xskcb/xspkjgcx.do";
+        "https://graduate.shanghaitech.edu.cn/gsapp/sys/wdkbappshtech/modules/xskcb/xspkjgcx.do";
     const notArrangedInfoURL =
-        "https://yjspt.xidian.edu.cn/gsapp/sys/wdkbapp/modules/xskcb/xswsckbkc.do";
+        "https://graduate.shanghaitech.edu.cn/gsapp/sys/wdkbappshtech/modules/xskcb/xswsckbkc.do";
 
     log.info("[getClasstable][getYjspt] Login the system.");
     final location = await checkAndLogin(
       target:
-          "https://yjspt.xidian.edu.cn/gsapp/"
-          "sys/wdkbapp/*default/index.do#/xskcb",
+          "https://graduate.shanghaitech.edu.cn/gsapp/"
+          "sys/wdkbappshtech/*default/index.do#/xskcb",
       sliderCaptcha: (String cookieStr) =>
           SliderCaptchaClientProvider(cookie: cookieStr).solve(),
     );
@@ -158,7 +158,7 @@ class ClassTableSession extends IDSSession {
     await followIDSRedirects(initialLocation: location, client: dio);
 
     final calendarResponse = await dio.post(
-      'https://yjspt.xidian.edu.cn/gsapp/sys/yjsemaphome/homeAppend/getSchoolCalendar.do',
+      'https://graduate.shanghaitech.edu.cn/gsapp/sys/yjsemaphome/homeAppend/getSchoolCalendar.do',
       data: {'xnxqdm': semesterCode},
     );
 

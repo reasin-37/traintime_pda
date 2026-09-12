@@ -57,10 +57,16 @@ class HomepageController {
     loginState = IDSLoginState.requesting;
 
     try {
+      // ⚠️ 上海科技大学适配：这里的 CAS service 必须用本校已注册的地址。
+      // 原代码用的是西电 ehall（https://ehall.xidian.edu.cn/...），上科大 CAS
+      // 会拒绝该 service → checkAndLogin 抛异常 → 第 80 行把 loginState 置为
+      // fail → offline=true → 之后所有功能都被 IDSSession.dio 的离线守卫拦下，
+      // 表现就是课表/成绩/考试全部报 "request cancelled"，且根本没发出请求。
+      // 改用已实测确认注册过的研究生门户地址（请求它会 302 到
+      // ids.shanghaitech.edu.cn/authserver/login?service=…）。
       await IDSSession().checkAndLogin(
         target:
-            "https://ehall.xidian.edu.cn/login?service="
-            "https://ehall.xidian.edu.cn/new/index.html",
+            "https://graduate.shanghaitech.edu.cn/gsapp/sys/yjsemaphome/portal/index.do",
         sliderCaptcha: sliderCaptcha,
       );
       loginState = IDSLoginState.success;

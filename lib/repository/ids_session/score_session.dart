@@ -185,7 +185,7 @@ class ScoreSession extends IDSSession {
 
     log.info("[ScoreSession][getScoreFromYjspt] Ready to login the system.");
     final location = await checkAndLogin(
-      target: "https://yjspt.xidian.edu.cn/gsapp/sys/wdcjapp/*default/index.do",
+      target: "https://graduate.shanghaitech.edu.cn/gsapp/sys/wdcjapp/*default/index.do",
       sliderCaptcha: (String cookieStr) =>
           SliderCaptchaClientProvider(cookie: cookieStr).solve(),
     );
@@ -195,7 +195,7 @@ class ScoreSession extends IDSSession {
     log.info("[ScoreSession][getScoreFromYjspt] Getting the score data.");
     var getData = await dio
         .post(
-          "https://yjspt.xidian.edu.cn/gsapp/sys/wdcjapp/modules/wdcj/xscjcx.do",
+          "https://graduate.shanghaitech.edu.cn/gsapp/sys/wdcjapp/modules/wdcj/xscjcx.do",
           data: {"querySetting": [], 'pageSize': 1000, 'pageNumber': 1},
         )
         .then((value) => value.data);

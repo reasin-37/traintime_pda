@@ -51,7 +51,7 @@ class IDSReAuthClient {
     if (_preparedCodeType == codeType) return;
 
     final response = await _dio.post(
-      'https://ids.xidian.edu.cn/authserver/reAuthCheck/changeReAuthType.do',
+      'https://ids.shanghaitech.edu.cn/authserver/reAuthCheck/changeReAuthType.do',
       data: {
         'isMultifactor': _isMultifactor,
         'reAuthType': codeType.reAuthType,
@@ -75,7 +75,7 @@ class IDSReAuthClient {
   }) async {
     await prepare(codeType: codeType);
     final response = await _dio.post(
-      'https://ids.xidian.edu.cn/authserver/dynamicCode/'
+      'https://ids.shanghaitech.edu.cn/authserver/dynamicCode/'
       'getDynamicCodeByReauth.do',
       data: {
         'userName': _deliveryUsername ?? username,
@@ -97,7 +97,7 @@ class IDSReAuthClient {
     }
 
     final response = await _dio.post(
-      'https://ids.xidian.edu.cn/authserver/reAuthCheck/reAuthSubmit.do',
+      'https://ids.shanghaitech.edu.cn/authserver/reAuthCheck/reAuthSubmit.do',
       data: {
         'service': service ?? '',
         'reAuthType': codeType.reAuthType,
@@ -122,7 +122,7 @@ class IDSReAuthClient {
     }
 
     final loginResponse = await _dio.get(
-      'https://ids.xidian.edu.cn/authserver/login',
+      'https://ids.shanghaitech.edu.cn/authserver/login',
       queryParameters: service == null ? null : {'service': service},
     );
     final location = loginResponse.headers.value(HttpHeaders.locationHeader);

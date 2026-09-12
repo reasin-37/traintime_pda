@@ -1,3 +1,18 @@
+> # ⚠️ 非官方分支：上海科技大学适配
+>
+> 本仓库是**第三方非官方**分支，把数据来源从西安电子科技大学改为**上海科技大学**，基于上游
+> [BenderBlog/traintime_pda](https://github.com/BenderBlog/traintime_pda)（XDYou / Traintime PDA，
+> 作者 **BenderBlog Rodriguez** 及贡献者）的 **v1.6.6** 修改而来。
+>
+> - **与上海科技大学官方无关**，不是学校发布的软件；与原作者亦无隶属关系
+> - 原项目按 **MPL-2.0** 授权（见 `LICENSE`）；本分支的修改**同样以 MPL-2.0 公开**
+> - **完整改动清单**：[`docs/shanghaitech_fork.md`](docs/shanghaitech_fork.md)
+> - 已适配并验证：**统一认证登录、课表、成绩、考试**（研究生）。原项目面向西电的专有功能（电费、校园卡、图书馆、校园网、物理实验、睿思论坛等）在本校**不可用**
+> - 本分支**不发布二进制版本**，也未沿用原项目图标作为自身标识
+> - 上游项目的主页、下载与文档请见下方原文说明
+>
+> 如原作者对本分支有任何异议，请开 Issue，我会立即调整或撤下。
+
 <div align="center">
 <img src="./assets/icon.png" style="border-radius:16px; margin:10px; width:120px" alt="XDYou">
 <h1>Traintime PDA / XDYou</h1>

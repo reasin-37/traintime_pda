@@ -30,10 +30,13 @@ class SliderCaptchaClientProvider {
 
   SliderCaptchaClientProvider({required this.cookie});
 
-  static const double _puzzleWidth = 280;
-  static const double _puzzleHeight = 155;
-  static const double _pieceWidth = 44;
-  static const double _pieceHeight = 155;
+  // 上海科技大学统一认证实测值（证据见
+  // reports/shanghaitech_adaptation_findings.md）：bigImage 500x332、
+  // smallImage 85x331，响应 tagWidth=85。原值为西电的 280x155 / 44x155。
+  static const double _puzzleWidth = 500;
+  static const double _puzzleHeight = 332;
+  static const double _pieceWidth = 85;
+  static const double _pieceHeight = 331;
   Uint8List? _puzzleData;
   Uint8List? _pieceData;
   Uint8List? _aesKey;
@@ -50,7 +53,7 @@ class SliderCaptchaClientProvider {
     // fetch captcha data
     log.info("Fetching slider captcha...");
     var rsp = await dio.get(
-      "https://ids.xidian.edu.cn/authserver/common/openSliderCaptcha.htl",
+      "https://ids.shanghaitech.edu.cn/authserver/common/openSliderCaptcha.htl",
       queryParameters: {'_': DateTime.now().millisecondsSinceEpoch.toString()},
       options: Options(headers: {"Cookie": cookie}),
     );
@@ -72,7 +75,7 @@ class SliderCaptchaClientProvider {
     });
     final sign = aesEncrypt(payload, _aesKey!);
     dynamic result = await dio.post(
-      "https://ids.xidian.edu.cn/authserver/common/verifySliderCaptcha.htl",
+      "https://ids.shanghaitech.edu.cn/authserver/common/verifySliderCaptcha.htl",
       data: "sign=${Uri.encodeQueryComponent(sign)}",
       options: Options(
         headers: {
@@ -81,9 +84,9 @@ class SliderCaptchaClientProvider {
           "Cookie": cookie,
           HttpHeaders.contentTypeHeader:
               "application/x-www-form-urlencoded;charset=UTF-8",
-          "Origin": "https://ids.xidian.edu.cn",
+          "Origin": "https://ids.shanghaitech.edu.cn",
           HttpHeaders.accessControlAllowOriginHeader:
-              "https://ids.xidian.edu.cn",
+              "https://ids.shanghaitech.edu.cn",
           "X-Requested-With": "XMLHttpRequest",
         },
       ),

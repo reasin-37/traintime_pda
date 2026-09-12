@@ -11,7 +11,7 @@ import 'package:talker_flutter/talker_flutter.dart';
 final log = TalkerFlutter.init();
 
 bool _isSensitiveNetworkRequest(Uri uri) {
-  if (uri.host == 'ids.xidian.edu.cn') return true;
+  if (uri.host == 'ids.shanghaitech.edu.cn') return true;
   final lowerQuery = uri.query.toLowerCase();
   return uri.queryParameters.keys.any(
         (key) => const {

@@ -2,7 +2,6 @@
 // Copyright 2025 Traintime PDA authors.
 // SPDX-License-Identifier: MPL-2.0 OR Apache-2.0
 
-import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'classtable.g.dart';
@@ -282,7 +281,7 @@ class ClassChange {
       (element) => element.contains(RegExp(r'([0-9])')),
     );
 
-    return !listEquals(originalTeacherCode, newTeacherCode);
+    return !_listEquals(originalTeacherCode, newTeacherCode);
   }
 
   String get changeTypeString {
@@ -300,4 +299,16 @@ class ClassChange {
       _$ClassChangeFromJson(json);
 
   Map<String, dynamic> toJson() => _$ClassChangeToJson(this);
+}
+
+/// 与 `package:flutter/foundation.dart` 的 `listEquals` 语义等价的有序逐元素比较。
+///
+/// 本地实现是为了让本文件彻底不依赖 Flutter，从而可以用纯 Dart 离线运行
+/// 课表解析测试（Flutter 未安装或沙盒受限时也能验证解析逻辑）。
+bool _listEquals(List<String> a, List<String> b) {
+  if (a.length != b.length) return false;
+  for (int i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
 }

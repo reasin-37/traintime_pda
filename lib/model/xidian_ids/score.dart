@@ -65,59 +65,77 @@ class Score {
 
   bool get isFinish => isPassed != null && score != null;
 
+  /// 上海科技大学：采用通过制（P/NP）的课程不计入 GPA。
+  ///
+  /// 判定依据是等级字段 [level]（来自金智 `CJXSZ`）为 `P` 或 `NP`。
+  bool get isPassFailCourse {
+    final grade = level?.trim().toUpperCase();
+    return grade == "P" || grade == "NP";
+  }
+
+  /// 上海科技大学绩点（4.0 制，等级制）。
+  ///
+  /// 校方规则：A+/A = 4.0、A- = 3.7、B+ = 3.3、B = 3.0、B- = 2.7、
+  /// C+ = 2.3、C = 2.0、C- = 1.7、F = 0；采用通过制（P/NP）的课程不计入 GPA。
+  ///
+  /// 原实现是西电的换算表（"优秀/良好/中等/及格"五级制 + 另一套百分制分段），
+  /// 与上科大不通用，故整体替换。下面的百分制分段取自校方给出的"仅供参考"列，
+  /// 仅用于响应里只带数值分数（[level] 为空）时的回退换算。
   double get gpa {
     if (!isFinish) {
       return 0.0;
     }
-    switch (scoreTypeCode) {
-      case 1:
-      case 3:
-        if (level == "优秀") {
-          return 4.0;
-        } else if (level == "通过") {
-          return 3.2;
-        } else {
-          return 0.0;
-        }
-      case 2:
-        if (level == "优秀") {
-          return 4.0;
-        } else if (level == "良好") {
-          return 3.8;
-        } else if (level == "中等") {
-          return 3.2;
-        } else if (level == "及格") {
-          return 2.4;
-        } else {
-          return 0.0;
-        }
-      default:
-        if (score! >= 95) {
-          return 4.0;
-        } else if (score! >= 90) {
-          return 3.9;
-        } else if (score! >= 84) {
-          return 3.8;
-        } else if (score! >= 80) {
-          return 3.6;
-        } else if (score! >= 76) {
-          return 3.4;
-        } else if (score! >= 73) {
-          return 3.2;
-        } else if (score! >= 70) {
-          return 3.0;
-        } else if (score! >= 67) {
-          return 2.7;
-        } else if (score! >= 64) {
-          return 2.4;
-        } else if (score! >= 62) {
-          return 2.2;
-        } else if (score! >= 60) {
-          return 2.0;
-        } else {
-          return 0.0;
-        }
+
+    // 优先按字母等级换算
+    switch (level?.trim().toUpperCase()) {
+      case "A+":
+      case "A":
+        return 4.0;
+      case "A-":
+        return 3.7;
+      case "B+":
+        return 3.3;
+      case "B":
+        return 3.0;
+      case "B-":
+        return 2.7;
+      case "C+":
+        return 2.3;
+      case "C":
+        return 2.0;
+      case "C-":
+        return 1.7;
+      case "F":
+        return 0.0;
+      // 通过制课程不计入 GPA（同时由 ScoreState._evalCount 整体排除）
+      case "P":
+      case "NP":
+        return 0.0;
     }
+
+    // 回退：只有百分制分数时，按上科大等级制的分数段换算
+    final mark = score;
+    if (mark == null) {
+      return 0.0;
+    }
+    if (mark >= 90) {
+      return 4.0; // A+ / A
+    } else if (mark >= 85) {
+      return 3.7; // A-
+    } else if (mark >= 80) {
+      return 3.3; // B+
+    } else if (mark >= 75) {
+      return 3.0; // B
+    } else if (mark >= 70) {
+      return 2.7; // B-
+    } else if (mark >= 67) {
+      return 2.3; // C+
+    } else if (mark >= 63) {
+      return 2.0; // C
+    } else if (mark >= 60) {
+      return 1.7; // C-
+    }
+    return 0.0; // F
   }
 
   factory Score.fromJson(Map<String, dynamic> json) => _$ScoreFromJson(json);
