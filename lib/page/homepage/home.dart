@@ -9,15 +9,12 @@ import 'dart:async';
 import 'package:based_split_view/based_split_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
-import 'package:talker_flutter/talker_flutter.dart';
-import 'package:watermeter/external/ruisi_flutter/ruisi_flutter.dart';
 import 'package:watermeter/page/pig/pig_page.dart';
 import 'package:watermeter/page/public_widget/split_page_placeholder.dart';
 import 'package:watermeter/page/toolbox/toolbox_page.dart';
 import 'package:watermeter/repository/logger.dart';
 import 'package:watermeter/page/public_widget/toast.dart';
 import 'package:restart_app/restart_app.dart';
-import 'package:watermeter/repository/network_client.dart';
 import 'package:watermeter/repository/widget_state_sync.dart';
 import 'package:watermeter/controller/homepage_controller.dart';
 import 'package:watermeter/controller/update_notice_controller.dart';
@@ -247,24 +244,18 @@ class _HomePageMasterState extends State<HomePageMaster>
       ),
       PageInformation(
         index: 1,
-        name: FlutterI18n.translate(context, "homepage.ruisi"),
-        icon: Icons.forum_outlined,
-        iconChoice: Icons.forum,
-      ),
-      PageInformation(
-        index: 2,
         name: FlutterI18n.translate(context, "homepage.toolbox.toolbox"),
         icon: MingCuteIcons.mgc_tool_line,
         iconChoice: MingCuteIcons.mgc_tool_fill,
       ),
       PageInformation(
-        index: 3,
+        index: 2,
         name: FlutterI18n.translate(context, "homepage.dashboard"),
         icon: MingCuteIcons.mgc_pig_line,
         iconChoice: MingCuteIcons.mgc_pig_fill,
       ),
       PageInformation(
-        index: 4,
+        index: 3,
         name: FlutterI18n.translate(context, "homepage.setting"),
         icon: MingCuteIcons.mgc_user_2_line,
         iconChoice: MingCuteIcons.mgc_user_2_fill,
@@ -275,19 +266,7 @@ class _HomePageMasterState extends State<HomePageMaster>
       body: PageView(
         controller: _controller,
         children: [
-          MainPage(
-            changePage: () {
-              setState(() {
-                _selectedIndex = 1;
-              });
-              _controller.jumpToPage(_selectedIndex);
-            },
-          ),
-          RuisiApp(
-            prefs: preference.prefs,
-            cookiePath: supportPath.path,
-            talker: TalkerFlutter.init(),
-          ),
+          const MainPage(),
           const ToolBoxPage(),
           const PigPage(),
           const SettingWindow(),

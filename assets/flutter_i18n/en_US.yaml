@@ -392,6 +392,13 @@ empty_classroom:
   classroom: Classroom
   empty: Available
   occupied: Occupied
+activity:
+  title: Academic Activities
+  fetching_hint: Fetching your report registrations
+  no_report: No report registration yet
+  unnamed_report: Untitled report
+  status_unknown: Unknown status
+  has_attachment: Attached
 exam:
   title: Exam Schedule
   cache_hint: Displaying cached exam schedule info
@@ -578,6 +585,7 @@ homepage:
     no_info: Cannot retrieve information currently
     fetching_info: Fetching information...
   toolbox:
+    activity: Academic
     class_attendance: Attendances
     creative: Innovation and Entrepreneurship Competition
     empty_classroom: Classrooms

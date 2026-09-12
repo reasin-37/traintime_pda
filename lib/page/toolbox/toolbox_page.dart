@@ -83,15 +83,6 @@ class _ToolBoxPageState extends State<ToolBoxPage> {
             ),
             iconData: MingCuteIcons.mgc_counter_2_line,
           ),
-          WebViewAddresses(
-            name: FlutterI18n.translate(context, "toolbox.discover"),
-            url: "https://nav.xdruisi.cn/",
-            description: FlutterI18n.translate(
-              context,
-              "toolbox.discover_description",
-            ),
-            iconData: MingCuteIcons.mgc_web_line,
-          ),
         ].map((e) => WebViewListTile(data: e)).toList(),
       ),
     );

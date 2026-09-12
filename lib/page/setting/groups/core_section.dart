@@ -5,7 +5,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
-import 'package:get_it/get_it.dart';
 import 'package:restart_app/restart_app.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -15,7 +14,6 @@ import 'package:watermeter/controller/exam_controller.dart';
 import 'package:watermeter/controller/other_experiment_controller.dart';
 import 'package:watermeter/controller/physics_experiment_controller.dart';
 import 'package:watermeter/controller/theme_controller.dart';
-import 'package:watermeter/external/ruisi_flutter/lib/controller/ruisi_controller.dart';
 import 'package:watermeter/page/public_widget/context_extension.dart';
 import 'package:watermeter/page/public_widget/toast.dart';
 import 'package:watermeter/page/setting/groups/section_setting_scaffold.dart';
@@ -188,12 +186,6 @@ class CoreSection extends StatelessWidget {
                         file.deleteSync();
                       }
                     }
-                    try {
-                      await GetIt.instance<RuisiService>().logout();
-                    } catch (e, s) {
-                      log.error(e, s);
-                    }
-
                     /// Clean user information
                     await preference.prefrenceClear();
 

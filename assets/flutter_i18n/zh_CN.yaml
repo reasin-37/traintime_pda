@@ -350,6 +350,13 @@ empty_classroom:
   classroom: 教室
   empty: 空闲
   occupied: 占用
+activity:
+  title: 学术活动
+  fetching_hint: 正在获取听报告登记记录
+  no_report: 目前没有听报告登记记录
+  unnamed_report: 未命名报告
+  status_unknown: 状态未知
+  has_attachment: 有附件
 exam:
   title: 考试安排
   cache_hint: 已显示缓存考试安排信息
@@ -509,6 +516,7 @@ homepage:
     no_info: 目前无法获取信息
     fetching_info: 正在查询信息中
   toolbox:
+    activity: 学术活动
     class_attendance: 考勤查询
     creative: 双创竞赛
     empty_classroom: 空闲教室

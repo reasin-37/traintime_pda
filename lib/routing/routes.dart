@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'package:flutter/material.dart';
+import 'package:watermeter/page/activity/activity_window.dart';
 import 'package:watermeter/page/class_attendance/class_attendance_view.dart';
 import 'package:watermeter/page/classtable/classtable.dart';
 import 'package:watermeter/page/dorm_water/dorm_water_window.dart';
@@ -21,6 +22,7 @@ class Routes {
   Routes._();
 
   // Route name constants
+  static const activity = '/activity';
   static const classAttendance = '/class-attendance';
   static const score = '/score';
   static const exam = '/exam';
@@ -37,6 +39,8 @@ class Routes {
 
   static Widget _resolve(String name, Object? arguments) {
     return switch (name) {
+      // 学术活动 / 听报告登记（上海科技大学）
+      activity => const ActivityWindow(),
       classAttendance => const ClassAttendanceView(),
       score => const ScoreWindow(),
       exam => const ExamInfoWindow(),

@@ -128,7 +128,3 @@ flutter:
     - assets/flutter_i18n/en_US.yaml
     # - assets/captcha-solver-payment.tflite
     # - assets/captcha-solver-zfw.tflite
-    - assets/ruisi_flutter/
-    - assets/ruisi_flutter/smiley/acn/
-    - assets/ruisi_flutter/smiley/tieba/
-    - assets/ruisi_flutter/smiley/jgz/

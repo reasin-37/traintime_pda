@@ -349,6 +349,13 @@ empty_classroom:
   classroom: 教室
   empty: 空閒
   occupied: 佔用
+activity:
+  title: 學術活動
+  fetching_hint: 正在取得聽報告登記記錄
+  no_report: 目前沒有聽報告登記記錄
+  unnamed_report: 未命名報告
+  status_unknown: 狀態未知
+  has_attachment: 有附件
 exam:
   title: 考試安排
   cache_hint: 已顯示緩存考試安排信息
@@ -507,6 +514,7 @@ homepage:
     no_info: 目前無法獲取信息
     fetching_info: 正在查詢信息中
   toolbox:
+    activity: 學術活動
     class_attendance: 考勤查詢
     creative: 雙創競賽
     empty_classroom: 空閒教室

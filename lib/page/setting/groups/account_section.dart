@@ -70,39 +70,6 @@ class AccountSection extends StatelessWidget {
             );
           },
         ),
-        // const Divider(),
-        // ListTile(
-        //   title: Text(
-        //     FlutterI18n.translate(context, "setting.aircon_imei_title"),
-        //   ),
-        //   subtitle: Text(
-        //     preference
-        //             .getString(preference.Preference.airconImei)
-        //             .isEmpty
-        //         ? FlutterI18n.translate(
-        //             context,
-        //             "setting.aircon_imei_not_set",
-        //           )
-        //         : FlutterI18n.translate(
-        //             context,
-        //             "setting.aircon_imei_current",
-        //             translationParams: {
-        //               "imei": preference.getString(
-        //                 preference.Preference.airconImei,
-        //               ),
-        //             },
-        //           ),
-        //   ),
-        //   trailing: const Icon(Icons.qr_code_scanner),
-        //   onTap: () {
-        //     showDialog(
-        //       context: context,
-        //       builder: (context) => const AirconImeiDialog(),
-        //     ).then((_) {
-        //       if (mounted) setState(() {});
-        //     });
-        //   },
-        // ),
       ],
     );
   }

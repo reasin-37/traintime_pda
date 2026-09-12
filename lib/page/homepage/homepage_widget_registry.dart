@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:watermeter/page/homepage/info_widget/energy_card.dart';
 import 'package:watermeter/page/homepage/info_widget/library_card.dart';
 import 'package:watermeter/page/homepage/info_widget/school_card_info_card.dart';
+import 'package:watermeter/page/homepage/toolbox/activity_card.dart';
 import 'package:watermeter/page/homepage/toolbox/class_attendance_card.dart';
 import 'package:watermeter/page/homepage/toolbox/dorm_water_card.dart';
 import 'package:watermeter/page/homepage/toolbox/empty_classroom_card.dart';
@@ -42,6 +43,7 @@ const defaultAllOrder = [
   'schoolcard',
   'score',
   'exam',
+  'activity',
   'empty_classroom',
   'class_attendance',
   'schoolnet',
@@ -82,6 +84,12 @@ final homepageRegistry = <HomepageWidgetEntry>[
     titleKey: 'homepage.toolbox.exam',
     gridSpan: 1,
     builder: (_, _) => const ExamCard(),
+  ),
+  HomepageWidgetEntry(
+    id: 'activity',
+    titleKey: 'homepage.toolbox.activity',
+    gridSpan: 1,
+    builder: (_, _) => const ActivityCard(),
   ),
   HomepageWidgetEntry(
     id: 'empty_classroom',

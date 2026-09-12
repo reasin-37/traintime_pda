@@ -165,8 +165,7 @@ enum Preference {
   homepageAllOrder(key: "homepageAllOrder", type: "String"), // 主页卡片统一顺序
   homepageHiddenIds(key: "homepageHiddenIds", type: "String"), // 主页隐藏卡片
   fontScale(key: "fontScale", type: "double"), // 字体大小倍率
-  fontWeight(key: "fontWeight", type: "double"), // 字体粗细档位（0~1）
-  airconImei(key: "aircon_imei", type: "String"); // 空调 IMEI
+  fontWeight(key: "fontWeight", type: "double"); // 字体粗细档位（0~1）
 
   const Preference({required this.key, this.type = "String"});
 
