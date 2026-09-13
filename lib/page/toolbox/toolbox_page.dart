@@ -22,6 +22,19 @@ class _ToolBoxPageState extends State<ToolBoxPage> {
       appBar: AppBar(title: I18nText("toolbox.title")),
       body: ListView(
         children: [
+          // 上海科技大学：研究生系统的直达入口。门户里还有培养方案、学期/学年考核、
+          // 论文开题、预答辩、毕业审查、研究生选课等应用，日常使用频率不高，
+          // 故不再逐个适配，统一由此跳转（未登录时会自动跳转统一认证）。
+          WebViewAddresses(
+            name: FlutterI18n.translate(context, "toolbox.graduate"),
+            url:
+                "https://graduate.shanghaitech.edu.cn/gsapp/sys/yjsemaphome/portal/index.do",
+            description: FlutterI18n.translate(
+              context,
+              "toolbox.graduate_description",
+            ),
+            iconData: MingCuteIcons.mgc_school_line,
+          ),
           WebViewAddresses(
             name: FlutterI18n.translate(context, "toolbox.payment"),
             url:

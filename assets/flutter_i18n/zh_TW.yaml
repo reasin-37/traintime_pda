@@ -1101,6 +1101,8 @@ sport:
   error_credential_invalid: 體育登錄已失效，請更新體育密碼後重試。
 toolbox:
   title: 其他功能
+  graduate: 研究生系統
+  graduate_description: 培養方案、考核、選課等業務的總入口
   payment: 繳費系統
   payment_description: 電費該交了吧
   drinkingwater: 訂水系統

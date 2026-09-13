@@ -1245,6 +1245,8 @@ sport:
     and try again.
 toolbox:
   title: Other Functions
+  graduate: Graduate Portal
+  graduate_description: Entry for study plan, assessments and course selection
   payment: Payment System
   payment_description: Times to pay the electricity fee
   drinkingwater: Drinking Water

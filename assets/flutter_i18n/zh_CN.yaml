@@ -1105,6 +1105,8 @@ sport:
   error_credential_invalid: 体育登录已失效，请更新体育密码后重试。
 toolbox:
   title: 其他功能
+  graduate: 研究生系统
+  graduate_description: 培养方案、考核、选课等业务的总入口
   payment: 缴费系统
   payment_description: 电费该交了吧
   drinkingwater: 订水系统
