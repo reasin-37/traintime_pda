@@ -1,13 +1,10 @@
 // Copyright 2026 Traintime PDA Authours, originally by BenderBlog Rodriguez.
 // SPDX-License-Identifier: MPL-2.0
 
-import 'dart:async';
-
 import 'package:intl/intl.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:time/time.dart';
 import 'package:watermeter/controller/global_timer_controller.dart';
-import 'package:watermeter/controller/semester_controller.dart';
 import 'package:watermeter/model/fetch_result.dart';
 import 'package:watermeter/model/home_arrangement.dart';
 import 'package:watermeter/model/xidian_ids/experiment.dart';
@@ -19,14 +16,19 @@ class OtherExperimentController {
   final session = SysjSession();
 
   OtherExperimentController._() {
-    /// Load from cache at the beginning
-    final cache = session.getCache();
-    if (cache != null) {
-      final cached = FetchResult.cache(fetchTime: cache.$1, data: cache.$2);
-      _lastValidOtherExperiment.value = cached;
-      otherExperimentStateSignal.value = AsyncState.data(cached);
-    }
-    _initEffects();
+    /// 其他实验系统（原西电实验室预约系统）已下架：先清掉历史缓存，
+    /// 然后直接进入「空数据」终态（与 [PhysicsExperimentController] 同构）。
+    ///
+    /// `_lastValidOtherExperiment` 若留 null，会让 `hasValidOtherExperiment`
+    /// 为 false，而 `experiment_window.dart:324` 在既非 error 也非 loading 时
+    /// 会落到 `CircularProgressIndicator` —— 即永久转圈。
+    session.deleteCache();
+    final empty = FetchResult.fresh(
+      fetchTime: DateTime.now(),
+      data: <ExperimentData>[],
+    );
+    _lastValidOtherExperiment.value = empty;
+    otherExperimentStateSignal.value = AsyncState.data(empty);
   }
 
   final _lastValidOtherExperiment = signal<FetchResult<List<ExperimentData>>?>(
@@ -36,25 +38,6 @@ class OtherExperimentController {
       signal<AsyncState<FetchResult<List<ExperimentData>>>>(
         const AsyncLoading(),
       );
-  SemesterSyncEvent? _lastHandledSemesterSyncEvent;
-
-  void _initEffects() {
-    effect(() {
-      final semesterChangeEvent =
-          SemesterController.i.semesterSyncEventSignal.value;
-      if (semesterChangeEvent == null ||
-          identical(semesterChangeEvent, _lastHandledSemesterSyncEvent)) {
-        return;
-      }
-
-      _lastHandledSemesterSyncEvent = semesterChangeEvent;
-      if (semesterChangeEvent.didChange) {
-        _lastValidOtherExperiment.value = null;
-        session.deleteCache();
-      }
-      unawaited(reloadOtherExperiment());
-    }, options: EffectOptions(name: "OtherExperimentSemesterChangeEffect"));
-  }
 
   Future<void> reloadOtherExperiment() async {
     final previous = _lastValidOtherExperiment.value;

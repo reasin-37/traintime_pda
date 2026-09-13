@@ -92,9 +92,6 @@ enum Preference {
     key: "notification_last_locale",
     type: "String",
   ), // 上次通知使用的语言
-  dormWaterToken(key: "dorm_water_token", type: "String"), // 宿舍水机登录 token
-  dormWaterUid(key: "dorm_water_uid", type: "String"), // 宿舍水机用户 uid
-  dormWaterEid(key: "dorm_water_eid", type: "String"), // 宿舍水机用户 eid
   systemCalendarId(key: "system_calendar_id", type: "String"), // 导出的系统日历 id
   systemCalendarSemesterCode(
     key: "system_calendar_semester_code",

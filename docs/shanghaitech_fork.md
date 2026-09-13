@@ -115,6 +115,43 @@
 
 **当前仅实现只读查看**；新建 / 编辑 / 删除尚未实现。
 
+### 3.8 移除物理实验 / 实验报告的西电网络依赖（24 个文件）
+
+物理实验（原西电 PhyEws 实验报告系统）与「其他实验」（原西电实验室预约系统）在本校**均无对应系统**。
+但实验数据是课表的**一等公民**——`ExperimentData` 作为日程条目参与课表渲染、系统日历导出、
+课程提醒与 iOS/Android 小组件，直接整块删除会造成大量 UI 编译错误。
+
+因此采用**「只删网络层、保留模型与界面」**的最小改动方案：把两个 session 降级为
+「永远返回空 `FetchResult` 的本地空壳」，控制器在构造时直接进入空数据终态。
+这样模型、信号、UI、课表渲染、系统日历、课程提醒、小组件**全部零改动**，
+只是永远不会再被喂到实验数据，界面表现为正常的空态文案。
+
+| 类别 | 内容 |
+|---|---|
+| **整删（24 个文件）** | `experiment_report_session.dart`；代码生成链 `lib/generated/score_hashes.g.dart` + `tool/generators/score_hashes_generator.dart` + `build.yaml` 中对应 builder；素材 `assets/experiment_score/**`（19 个）与 2 个 `captcha-solver-*.tflite` |
+| **改为空实现（3 个）** | `image_recognition.dart`（只保留 `ExperimentData` 序列化所需的 `RecognitionResult`）、`physics_experiment_session.dart`、`sysj_session.dart` |
+| **小改（2 个控制器）** | 构造时清历史缓存 + seed 空态；删除学期变更 effect（该 effect 会把 `_lastValid` 置 `null` 而不 reload，改空实现后会导致实验页**永久转圈**） |
+| **未改动** | `model/xidian_ids/experiment.dart`(+`.g.dart`)、全部 `page/classtable/**` 与 `page/experiment/**`、`android/**`、`ios/**`、三语 i18n |
+
+顺带修正：`deleteCache()` 现在同时清理 iOS App Group 中的历史缓存副本；
+`assets/README.MD` 中 3 条已失效的资产授权条目同步移除。
+
+> 说明：**移掉实验功能不等于全仓「零西电域名」**。电费/校园卡/图书馆/校园网/体育等模块仍保留
+> 指向西电的代码路径，属尚未适配范围（见第四节）。本次验收口径是「**实验链路**零西电域名」。
+
+### 3.9 移除「宿舍水机」模块（4 个文件）
+
+宿舍水机（原接第三方直饮水平台 `i.ilife798.com`）在本校无对应服务，且其依赖的第三方平台
+与学校系统无关，故**整块删除**。
+
+| 类别 | 内容 |
+|---|---|
+| **整删（4 个文件 / 1 293 行）** | `lib/model/dorm_water.dart`、`lib/page/dorm_water/dorm_water_window.dart`、`lib/repository/miscellaneous_session/dorm_water_session.dart`、`lib/page/homepage/toolbox/dorm_water_card.dart`（`page/dorm_water/` 目录随之移除） |
+| **摘除接线** | `homepage_widget_registry.dart`（`defaultAllOrder` 条目 + `HomepageWidgetEntry` 块 + import）、`routing/routes.dart`（import + `dormWater` 常量 + 路由分支）、`repository/preference.dart`（`dormWaterToken`/`dormWaterUid`/`dormWaterEid` 三个枚举项） |
+| **同步 i18n** | 三语各移除 41 行：顶级 `dorm_water:` 块（40 行）+ `homepage.toolbox.dorm_water` 键 |
+
+> 主页注册表条目由 12 项减为 **11 项**。
+
 ## 四、当前可用范围
 
 **已适配并验证可用：**
@@ -128,10 +165,12 @@
 
 **仍不可用**（连接西电专有系统，界面上仍会显示并报错）：
 
-电费、校园卡、图书馆、校园网、物理实验 / 实验报告、空教室、考勤、体育。
+电费、校园卡、图书馆、校园网、空教室、考勤、体育。
 
 > 其中**睿思论坛、XDU Planet、空调已从代码中删除**（见 3.6），界面上相应入口也不再存在；底部导航由 5 个标签变为 4 个。
-> 物理实验 / 实验报告尚未删除：它与课表 UI 深度耦合（实验数据作为日程条目参与渲染），计划按"只删网络层、保留模型与界面"的方式单独处理。
+> **宿舍水机已整块删除**（见 3.9），主页不再有该入口。
+> **物理实验 / 实验报告的西电网络依赖已移除**（见 3.8）：界面保留，但不再请求西电系统，表现为空态；
+> 课表空态文案相应地从 `with_experiment` 回退到 `with_exam` / `no_course`（属预期变化）。
 
 ## 五、构建说明
 

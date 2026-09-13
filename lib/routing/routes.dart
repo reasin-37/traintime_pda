@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:watermeter/page/activity/activity_window.dart';
 import 'package:watermeter/page/class_attendance/class_attendance_view.dart';
 import 'package:watermeter/page/classtable/classtable.dart';
-import 'package:watermeter/page/dorm_water/dorm_water_window.dart';
 import 'package:watermeter/page/empty_classroom/empty_classroom_window.dart';
 import 'package:watermeter/page/energy/electricity_window.dart';
 import 'package:watermeter/page/exam/exam_info_window.dart';
@@ -32,7 +31,6 @@ class Routes {
   static const networkCard = '/network-card';
   static const experiment = '/experiment';
   static const emptyClassroom = '/empty-classroom';
-  static const dormWater = '/dorm-water';
   static const schoolCard = '/school-card';
   static const library = '/library';
   static const electricity = "/electricity";
@@ -53,7 +51,6 @@ class Routes {
       networkCard => const NetworkCardWindow(),
       experiment => const ExperimentWindow(),
       emptyClassroom => const EmptyClassroomWindow(),
-      dormWater => const DormWaterWindow(),
       schoolCard => const SchoolCardWindow(),
       library => const LibraryWindow(),
       electricity => const ElectricityWindow(),

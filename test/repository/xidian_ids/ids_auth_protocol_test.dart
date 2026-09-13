@@ -31,7 +31,7 @@ void main() {
     test('recognizes the exact IDS re-authentication endpoint', () {
       expect(
         isIDSReAuthLocation(
-          'https://ids.xidian.edu.cn/authserver/'
+          'https://ids.shanghaitech.edu.cn/authserver/'
           'reAuthCheck/reAuthLoginView.do?isMultifactor=true',
         ),
         isTrue,
@@ -42,7 +42,9 @@ void main() {
       expect(
         isIDSReAuthLocation(
           'reAuthCheck/reAuthLoginView.do',
-          baseUri: Uri.parse('https://ids.xidian.edu.cn/authserver/login'),
+          baseUri: Uri.parse(
+            'https://ids.shanghaitech.edu.cn/authserver/login',
+          ),
         ),
         isTrue,
       );
@@ -189,7 +191,7 @@ void main() {
       switch (request.uri.path) {
         case '/start':
           return _redirect(
-            'https://ids.xidian.edu.cn/authserver/login?'
+            'https://ids.shanghaitech.edu.cn/authserver/login?'
             'service=${Uri.encodeQueryComponent(nestedService)}',
           );
         case '/authserver/login':
@@ -278,7 +280,7 @@ void main() {
 
     final first = session.resolveIDSReAuthIfNeeded(
       Uri.parse(
-        'https://ids.xidian.edu.cn/authserver/'
+        'https://ids.shanghaitech.edu.cn/authserver/'
         'reAuthCheck/reAuthLoginView.do?service=first',
       ),
       username: 'test-user',
@@ -288,7 +290,7 @@ void main() {
 
     final second = session.resolveIDSReAuthIfNeeded(
       Uri.parse(
-        'https://ids.xidian.edu.cn/authserver/'
+        'https://ids.shanghaitech.edu.cn/authserver/'
         'reAuthCheck/reAuthLoginView.do?service=second',
       ),
       username: 'test-user',

@@ -1,18 +1,14 @@
 // Copyright 2026 Traintime PDA Authours, originally by BenderBlog Rodriguez.
 // SPDX-License-Identifier: MPL-2.0
 
-import 'dart:async';
-
 import 'package:intl/intl.dart';
 import 'package:signals/signals_flutter.dart';
 import 'package:time/time.dart';
 import 'package:watermeter/controller/global_timer_controller.dart';
-import 'package:watermeter/controller/semester_controller.dart';
 import 'package:watermeter/model/fetch_result.dart';
 import 'package:watermeter/model/home_arrangement.dart';
 import 'package:watermeter/model/xidian_ids/experiment.dart';
 import 'package:watermeter/repository/logger.dart';
-import 'package:watermeter/repository/preference.dart' as pref;
 import 'package:watermeter/repository/experiment_session/physics_experiment_session.dart';
 
 class PhysicsExperimentController {
@@ -20,14 +16,23 @@ class PhysicsExperimentController {
   static final PhysicsExperimentController i = PhysicsExperimentController._();
 
   PhysicsExperimentController._() {
-    /// Load from cache at the beginning
-    final cache = session.getCache();
-    if (cache != null) {
-      final cached = FetchResult.cache(fetchTime: cache.$1, data: cache.$2);
-      _lastValidPhysicsExperiment.value = cached;
-      physicsExperimentStateSignal.value = AsyncState.data(cached);
-    }
-    _initEffects();
+    /// 物理实验系统（原西电 PhyEws）已下架：先清掉历史缓存，
+    /// 然后直接进入「空数据」终态。
+    ///
+    /// 必须 seed 而非留 null：`experiment_window.dart:324` 的 `!hasAnyValidData`
+    /// 分支在既非 error 也非 loading 时会落到 `CircularProgressIndicator`，
+    /// 而 `_lastValidPhysicsExperiment` 为 null 会让 `hasValidPhysicsExperiment`
+    /// 为 false —— 那就是永久转圈。
+    ///
+    /// 用 `FetchResult.fresh`（而非 `.cache`）可同时压掉
+    /// 「缓存提示条」与「缓存失败提示条」两条 UI 分支。
+    session.deleteCache();
+    final empty = FetchResult.fresh(
+      fetchTime: DateTime.now(),
+      data: <ExperimentData>[],
+    );
+    _lastValidPhysicsExperiment.value = empty;
+    physicsExperimentStateSignal.value = AsyncState.data(empty);
   }
 
   final _lastValidPhysicsExperiment =
@@ -36,31 +41,6 @@ class PhysicsExperimentController {
       signal<AsyncState<FetchResult<List<ExperimentData>>>>(
         const AsyncLoading(),
       );
-  SemesterSyncEvent? _lastHandledSemesterSyncEvent;
-
-  void _initEffects() {
-    effect(() {
-      final semesterChangeEvent =
-          SemesterController.i.semesterSyncEventSignal.value;
-      if (semesterChangeEvent == null ||
-          identical(semesterChangeEvent, _lastHandledSemesterSyncEvent)) {
-        return;
-      }
-
-      _lastHandledSemesterSyncEvent = semesterChangeEvent;
-      if (semesterChangeEvent.didChange) {
-        _lastValidPhysicsExperiment.value = null;
-        unawaited(
-          Future(() async {
-            session.deleteCache();
-            await pref.remove(pref.Preference.experimentPassword);
-          }),
-        );
-        return;
-      }
-      unawaited(reloadPhysicsExperiment());
-    }, options: EffectOptions(name: "PhysicsExperimentSemesterChangeEffect"));
-  }
 
   Future<void> reloadPhysicsExperiment() async {
     final previous = _lastValidPhysicsExperiment.value;

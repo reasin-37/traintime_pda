@@ -9,7 +9,6 @@ import 'package:watermeter/page/homepage/info_widget/library_card.dart';
 import 'package:watermeter/page/homepage/info_widget/school_card_info_card.dart';
 import 'package:watermeter/page/homepage/toolbox/activity_card.dart';
 import 'package:watermeter/page/homepage/toolbox/class_attendance_card.dart';
-import 'package:watermeter/page/homepage/toolbox/dorm_water_card.dart';
 import 'package:watermeter/page/homepage/toolbox/empty_classroom_card.dart';
 import 'package:watermeter/page/homepage/toolbox/exam_card.dart';
 import 'package:watermeter/page/homepage/toolbox/experiment_card.dart';
@@ -47,7 +46,6 @@ const defaultAllOrder = [
   'empty_classroom',
   'class_attendance',
   'schoolnet',
-  'dorm_water',
   'experiment',
   'sport',
 ];
@@ -110,17 +108,14 @@ final homepageRegistry = <HomepageWidgetEntry>[
     builder: (_, _) => const SchoolnetCard(),
   ),
   HomepageWidgetEntry(
-    id: 'dorm_water',
-    titleKey: 'homepage.toolbox.dorm_water',
-    gridSpan: 1,
-    builder: (_, _) => const DormWaterCard(),
-  ),
-  HomepageWidgetEntry(
     id: 'experiment',
     titleKey: 'homepage.toolbox.experiment',
     gridSpan: 1,
     builder: (_, _) => const ExperimentCard(),
-    visible: () => prefs.getBool(prefs.Preference.role) == false,
+    // ⚠️ 开发期临时改动：原为 `visible: () => prefs.getBool(prefs.Preference.role) == false`
+    // （仅本科生可见，与下方 sport 同规则）。物理实验已无网络依赖、打开即显示空态，
+    // 开发阶段需要该入口便于随时调整，故暂时对所有角色显示。
+    // 待实验功能定稿后，请重新决定是否恢复角色门控。
   ),
   HomepageWidgetEntry(
     id: 'sport',
