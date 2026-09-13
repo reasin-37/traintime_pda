@@ -4,17 +4,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:watermeter/page/homepage/info_widget/energy_card.dart';
 import 'package:watermeter/page/homepage/info_widget/library_card.dart';
 import 'package:watermeter/page/homepage/info_widget/school_card_info_card.dart';
 import 'package:watermeter/page/homepage/toolbox/activity_card.dart';
-import 'package:watermeter/page/homepage/toolbox/class_attendance_card.dart';
 import 'package:watermeter/page/homepage/toolbox/empty_classroom_card.dart';
 import 'package:watermeter/page/homepage/toolbox/exam_card.dart';
-import 'package:watermeter/page/homepage/toolbox/experiment_card.dart';
-import 'package:watermeter/page/homepage/toolbox/schoolnet_card.dart';
 import 'package:watermeter/page/homepage/toolbox/score_card.dart';
-import 'package:watermeter/page/homepage/toolbox/sport_card.dart';
 import 'package:watermeter/repository/preference.dart' as prefs;
 
 typedef HomepageWidgetBuilder =
@@ -36,28 +31,36 @@ class HomepageWidgetEntry {
   });
 }
 
+/// 主页卡片清单的取舍（本轮，用户指示）：
+///
+/// - **移除** `energy`（宿舍电费）：上科大目前水/电/网均不收费，且其数据源是
+///   西电电控系统（`ignypt`/`xxcapp.xidian.edu.cn`）。
+/// - **移除** `experiment`（实验信息）：即此前已清空网络依赖的物理实验模块
+///   （`ExperimentWindow` → `PhysicsExperimentController`/`OtherExperimentController`，
+///   现为空数据源），已无实际内容。
+/// - **移除** `sport`（体育信息）：连西电 `tybjxgl.xidian.edu.cn`。
+/// - **移除** `class_attendance`（考勤）、`schoolnet`（网络查询）：连西电系统。
+/// - **保留** `library`（图书馆）、`schoolcard`（校园卡）两张**大卡片**：
+///   虽当前数据源仍指向西电，但将来可能对接上科大对应系统，故暂时保留展示。
+/// - **保留** `score`、`exam`、`activity` 三张小卡（均已适配）。
+///   `empty_classroom`（空闲教室）小卡暂留，待改造为「空间预约」。
+///
+/// 注：被移除的条目只是**从注册表清单去掉**，其卡片组件、session、controller
+/// **代码全部保留**（西电遗留接口按用户指示统一留到发布前再清理）。
 const defaultAllOrder = [
-  'energy',
   'library',
   'schoolcard',
   'score',
   'exam',
   'activity',
   'empty_classroom',
-  'class_attendance',
-  'schoolnet',
-  'experiment',
-  'sport',
 ];
 
 final homepageRegistry = <HomepageWidgetEntry>[
   // ---- 大卡片 ----
-  HomepageWidgetEntry(
-    id: 'energy',
-    titleKey: 'homepage.electricity_card.title',
-    gridSpan: 4,
-    builder: (_, _) => EnergyCard(),
-  ),
+  // 注：工厂已移除 `energy`（宿舍电费）——上科大目前水/电/网均不收费，
+  // 且其数据源是西电电控系统（`ignypt`/`xxcapp.xidian.edu.cn`）。
+  // `library` 与 `schoolcard` 暂时保留展示（将来可能对接上科大对应系统）。
   HomepageWidgetEntry(
     id: 'library',
     titleKey: 'homepage.library_card.title',
@@ -94,35 +97,6 @@ final homepageRegistry = <HomepageWidgetEntry>[
     titleKey: 'homepage.toolbox.empty_classroom',
     gridSpan: 1,
     builder: (_, _) => const EmptyClassroomCard(),
-  ),
-  HomepageWidgetEntry(
-    id: 'class_attendance',
-    titleKey: 'homepage.toolbox.class_attendance',
-    gridSpan: 1,
-    builder: (_, _) => const ClassAttendanceCard(),
-  ),
-  HomepageWidgetEntry(
-    id: 'schoolnet',
-    titleKey: 'homepage.toolbox.schoolnet',
-    gridSpan: 1,
-    builder: (_, _) => const SchoolnetCard(),
-  ),
-  HomepageWidgetEntry(
-    id: 'experiment',
-    titleKey: 'homepage.toolbox.experiment',
-    gridSpan: 1,
-    builder: (_, _) => const ExperimentCard(),
-    // ⚠️ 开发期临时改动：原为 `visible: () => prefs.getBool(prefs.Preference.role) == false`
-    // （仅本科生可见，与下方 sport 同规则）。物理实验已无网络依赖、打开即显示空态，
-    // 开发阶段需要该入口便于随时调整，故暂时对所有角色显示。
-    // 待实验功能定稿后，请重新决定是否恢复角色门控。
-  ),
-  HomepageWidgetEntry(
-    id: 'sport',
-    titleKey: 'homepage.toolbox.sport',
-    gridSpan: 1,
-    builder: (_, _) => const SportCard(),
-    visible: () => prefs.getBool(prefs.Preference.role) == false,
   ),
 ];
 
