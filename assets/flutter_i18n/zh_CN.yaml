@@ -549,6 +549,14 @@ library:
   search_field_isbn_option: ISBN
   search_field_barcode_option: 条码号
   search_field_callno_option: 索书号
+  search_field_subject_option: 主题词
+  not_available: 已借出
+  result_total: 共 {total} 条，显示前 {shown} 条
+  borrow_unavailable: 借阅记录需要登录图书馆系统，当前版本暂不支持
+  open_library_site: 打开图书馆网站
+  filter_by_location: 按馆藏地筛选
+  filter_clear: 全部
+  filter_no_match: 当前已加载的结果里没有该馆藏地
   not_provided: 未提供相关信息
   author: "作者 "
   publish_house: "出版社 "

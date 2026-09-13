@@ -546,6 +546,14 @@ library:
   search_field_author_option: 責任者
   search_field_isbn_option: ISBN
   search_field_barcode_option: 條碼號
+  search_field_subject_option: 主題詞
+  not_available: 已借出
+  result_total: 共 {total} 條，顯示前 {shown} 條
+  borrow_unavailable: 借閱記錄需要登入圖書館系統，目前版本暫不支援
+  open_library_site: 開啟圖書館網站
+  filter_by_location: 按館藏地篩選
+  filter_clear: 全部
+  filter_no_match: 目前已載入的結果裡沒有該館藏地
   search_field_callno_option: 索書號
   not_provided: 未提供相關信息
   author: '作者 '
