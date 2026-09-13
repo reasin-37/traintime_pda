@@ -764,6 +764,8 @@ school_card_window:
   time_with_sum: Time ({sum})
   no_record: No records found, please try again with different dates
   qr_code: Payment Code
+  qr_code_unsupported: The payment code API is not adapted yet; open the campus card web page instead
+  open_card_site: Open campus card page
   qr_code_error: "Get QR Code failed: {info}"
   reload: Reload
 score:

@@ -691,6 +691,8 @@ school_card_window:
   time_with_sum: 時間(共{sum}元)
   no_record: 未查詢到記錄，請修改日期後重試
   qr_code: 支付碼
+  qr_code_unsupported: 上海科技大學的一卡通支付碼介面尚未適配，可開啟校園卡網頁使用
+  open_card_site: 開啟校園卡網頁
   qr_code_error: 二維碼獲取失敗：{info}
   reload: 重新加載
 score:

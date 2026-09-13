@@ -3,15 +3,21 @@
 // SPDX-License-Identifier: MPL-2.0
 
 // School card log list.
+//
+// 【本分支改动】原先使用西电模型 `xidian_ids/paid_record.dart` 与
+// 西电 session 的 `getPaidStatus()`。上海科技大学的一卡通响应对应到
+// `model/shanghaitech/card.dart` 的 `CardTransaction`（摘要 / 金额 / 时间），
+// 数据来自 `controller/card_controller.dart`。页面结构与 i18n 键保持不变。
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:flutter/material.dart';
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:intl/intl.dart';
+import 'package:signals/signals_flutter.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:time/time.dart';
-import 'package:watermeter/controller/school_card_controller.dart';
+import 'package:watermeter/controller/card_controller.dart';
+import 'package:watermeter/model/shanghaitech/card.dart';
 import 'package:watermeter/page/public_widget/empty_list_view.dart';
-import 'package:watermeter/model/xidian_ids/paid_record.dart';
 import 'package:watermeter/page/public_widget/public_widget.dart';
 
 class SchoolCardWindow extends StatefulWidget {
@@ -23,13 +29,17 @@ class SchoolCardWindow extends StatefulWidget {
 
 class _SchoolCardWindowState extends State<SchoolCardWindow> {
   List<DateTime?> timeRange = [];
-  late Future<List<PaidRecord>> getPaid;
-  DateFormat formatter = DateFormat("yyyy-MM-dd");
+  final DateFormat formatter = DateFormat("yyyy-MM-dd");
+  final DateFormat timeFormatter = DateFormat("MM-dd HH:mm");
 
-  String moneySunUp(List<PaidRecord> theRecord) {
+  /// 汇总区间内的收支。
+  ///
+  /// 一卡通接口的 `txamt` **单位为分、负数为消费**（见
+  /// `model/shanghaitech/card.dart` 的说明），故这里用 [CardTransaction.amountYuan]。
+  String moneySunUp(List<CardTransaction> theRecord) {
     double sumUp = 0;
-    for (var element in theRecord) {
-      sumUp += double.parse(element.money);
+    for (final element in theRecord) {
+      sumUp += element.amountYuan ?? 0;
     }
     if (sumUp < 0) {
       return FlutterI18n.translate(
@@ -46,17 +56,22 @@ class _SchoolCardWindowState extends State<SchoolCardWindow> {
     }
   }
 
-  void refreshPaidStatus() => setState(() {
-    getPaid = SchoolCardController.i.session.getPaidStatus(
-      formatter.format(timeRange[0]!),
-      formatter.format(timeRange[1]!),
-    );
-  });
+  void refreshPaidStatus() {
+    if (timeRange.length < 2 || timeRange[0] == null || timeRange[1] == null) {
+      return;
+    }
+    setState(() {
+      CardController.i.reloadTransactionsRange(
+        startDate: formatter.format(timeRange[0]!),
+        endDate: formatter.format(timeRange[1]!),
+      );
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    var now = DateTime.now();
+    final now = DateTime.now();
     timeRange = [now.firstDayOfMonth, now];
     refreshPaidStatus();
   }
@@ -85,9 +100,8 @@ class _SchoolCardWindowState extends State<SchoolCardWindow> {
                 context: context,
                 config: CalendarDatePicker2WithActionButtonsConfig(
                   calendarType: CalendarDatePicker2Type.range,
-                  selectedDayHighlightColor: Theme.of(
-                    context,
-                  ).colorScheme.primary,
+                  selectedDayHighlightColor:
+                      Theme.of(context).colorScheme.primary,
                 ),
                 dialogSize: const Size(324, 400),
                 value: timeRange,
@@ -103,132 +117,100 @@ class _SchoolCardWindowState extends State<SchoolCardWindow> {
               });
             },
           ).padding(horizontal: 16, vertical: 8),
-          FutureBuilder<List<PaidRecord>>(
-            future: getPaid,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                if (snapshot.hasError) {
-                  return ReloadWidget(
-                    errorStatus: snapshot.error,
-                    function: () => refreshPaidStatus(),
-                  ).center();
-                } else if (snapshot.data!.isEmpty) {
-                  return EmptyListView(
-                    type: EmptyListViewType.singing,
-                    text: FlutterI18n.translate(
-                      context,
-                      "school_card_window.no_record",
-                    ),
-                  );
-                } else {
-                  final theme = Theme.of(context);
-                  final headerStyle = theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  );
-                  final cellStyle = theme.textTheme.bodyMedium;
-
-                  final headerRow = [
-                    Text(
-                      FlutterI18n.translate(
-                        context,
-                        "school_card_window.store_name",
-                      ),
-                      style: headerStyle,
-                      textAlign: TextAlign.center,
-                    ).expanded(flex: 3),
-                    Text(
-                      FlutterI18n.translate(
-                        context,
-                        "school_card_window.balance",
-                      ),
-                      style: headerStyle,
-                      textAlign: TextAlign.center,
-                    ).expanded(flex: 2),
-                    Text(
-                      FlutterI18n.translate(
-                        context,
-                        "school_card_window.time_with_sum",
-                        translationParams: {"sum": moneySunUp(snapshot.data!)},
-                      ),
-                      style: headerStyle,
-                      textAlign: TextAlign.center,
-                    ).expanded(flex: 4),
-                  ].toRow().padding(vertical: 10);
-
-                  final dataRows = List<Widget>.generate(
-                    snapshot.data!.length,
-                    (index) {
-                      final record = snapshot.data![index];
-                      return [
-                        if (index != 0)
-                          const Divider(
-                            height: 1,
-                          ).constrained(width: sheetMaxWidth),
-                        [
-                              Text(
-                                record.place,
-                                style: cellStyle,
-                                textAlign: TextAlign.center,
-                              ).expanded(flex: 3),
-                              Text(
-                                record.money,
-                                style: cellStyle,
-                                textAlign: TextAlign.center,
-                              ).expanded(flex: 2),
-                              Text(
-                                record.date,
-                                style: cellStyle,
-                                textAlign: TextAlign.center,
-                              ).expanded(flex: 4),
-                            ]
-                            .toRow()
-                            .padding(vertical: 10)
-                            .constrained(width: sheetMaxWidth),
-                      ].toColumn().width(double.infinity);
-                    },
-                  );
-
-                  return Column(
-                    children: [
-                      headerRow.constrained(width: sheetMaxWidth),
-                      const Divider(
-                        height: 1,
-                      ).constrained(width: sheetMaxWidth),
-                      Expanded(child: ListView(children: dataRows)),
-                    ],
-                  );
-                }
-              } else {
-                return const CircularProgressIndicator().center();
-              }
+          SignalBuilder(
+            builder: (context) {
+              final state = CardController.i.transactionsStateSignal.value;
+              return state.map(
+                data: (page) => _buildTable(page),
+                loading: () => const CircularProgressIndicator().center(),
+                refreshing: () => const CircularProgressIndicator().center(),
+                reloading: () => const CircularProgressIndicator().center(),
+                error: (err, stack) => ReloadWidget(
+                  errorStatus: err,
+                  stackTrace: stack,
+                  function: () async => refreshPaidStatus(),
+                ).center(),
+              );
             },
           ).expanded(),
         ],
       ),
     );
   }
-}
 
-class RecordData extends DataTableSource {
-  late List<PaidRecord> data;
+  Widget _buildTable(CardTransactionPage page) {
+    final records = page.rows;
+    if (records.isEmpty) {
+      return EmptyListView(
+        type: EmptyListViewType.singing,
+        text: FlutterI18n.translate(context, "school_card_window.no_record"),
+      );
+    }
 
-  RecordData({required this.data});
+    final theme = Theme.of(context);
+    final headerStyle = theme.textTheme.bodyLarge?.copyWith(
+      fontWeight: FontWeight.w500,
+    );
+    final cellStyle = theme.textTheme.bodyMedium;
 
-  @override
-  DataRow? getRow(int index) => DataRow(
-    cells: <DataCell>[
-      DataCell(Center(child: Text(data[index].place))),
-      DataCell(Center(child: Text(data[index].money))),
-      DataCell(Center(child: Text(data[index].date))),
-    ],
-  );
+    final headerRow = [
+      Text(
+        FlutterI18n.translate(context, "school_card_window.store_name"),
+        style: headerStyle,
+        textAlign: TextAlign.center,
+      ).expanded(flex: 3),
+      Text(
+        FlutterI18n.translate(context, "school_card_window.balance"),
+        style: headerStyle,
+        textAlign: TextAlign.center,
+      ).expanded(flex: 2),
+      Text(
+        FlutterI18n.translate(
+          context,
+          "school_card_window.time_with_sum",
+          translationParams: {"sum": moneySunUp(records)},
+        ),
+        style: headerStyle,
+        textAlign: TextAlign.center,
+      ).expanded(flex: 4),
+    ].toRow().padding(vertical: 10);
 
-  @override
-  bool get isRowCountApproximate => false;
+    final dataRows = List<Widget>.generate(records.length, (index) {
+      final record = records[index];
+      return [
+        if (index != 0)
+          const Divider(height: 1).constrained(width: sheetMaxWidth),
+        [
+          Text(
+            // 摘要（如「离线码在线消费」）；旧西电模型这里是商户名
+            record.summary ?? '',
+            style: cellStyle,
+            textAlign: TextAlign.center,
+          ).expanded(flex: 3),
+          Text(
+            // 金额（元，两位小数，负数为消费）
+            record.amountText,
+            style: cellStyle,
+            textAlign: TextAlign.center,
+          ).expanded(flex: 2),
+          Text(
+            record.time == null ? '' : timeFormatter.format(record.time!),
+            style: cellStyle,
+            textAlign: TextAlign.center,
+          ).expanded(flex: 4),
+        ]
+            .toRow()
+            .padding(vertical: 10)
+            .constrained(width: sheetMaxWidth),
+      ].toColumn().width(double.infinity);
+    });
 
-  @override
-  int get rowCount => data.length;
-
-  @override
-  int get selectedRowCount => 0;
+    return Column(
+      children: [
+        headerRow.constrained(width: sheetMaxWidth),
+        const Divider(height: 1).constrained(width: sheetMaxWidth),
+        Expanded(child: ListView(children: dataRows)),
+      ],
+    );
+  }
 }
