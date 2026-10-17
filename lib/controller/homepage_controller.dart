@@ -5,7 +5,6 @@ import 'package:intl/intl.dart' show DateFormat;
 import 'package:signals/signals.dart';
 import 'package:watermeter/controller/classtable_controller.dart';
 import 'package:watermeter/controller/custom_class_controller.dart';
-import 'package:watermeter/controller/energy_controller.dart';
 import 'package:watermeter/controller/exam_controller.dart';
 import 'package:watermeter/controller/global_timer_controller.dart';
 import 'package:watermeter/controller/library_controller.dart';
@@ -126,7 +125,11 @@ class HomepageController {
       ),
       _safeReload("Library", LibraryController.i.reloadBorrowList),
       _safeReload("SchoolCard", SchoolCardController.i.reloadOverview),
-      _safeReload("Electricity", EnergyController.i.refreshElectricityInfo),
+      // ⚠️ 这里**不再**调用 `EnergyController.i.refreshElectricityInfo`：
+      // 该模块的界面入口已从注册表移除（`homepage_widget_registry.dart`），
+      // 数据源仍是西电电控系统，其结果 `checkAndLogin(target: 西电 URL)`
+      // 会在每次刷新时向统一认证申请一个**发往校外系统**的 ticket，
+      // 且响应体含学号；属于已下线功能却仍在发出的请求。
     ]);
     await maybeAutoSyncSystemCalendar();
 

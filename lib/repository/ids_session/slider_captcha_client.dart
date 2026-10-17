@@ -91,7 +91,9 @@ class SliderCaptchaClientProvider {
         },
       ),
     );
-    log.info("Tried captcha payload:$payload, result:${result.data}");
+    // ⚠️ 不要打印 `payload`（滑块轨迹）与 `result.data`（原始 JSON 响应体）：
+    // `ids.shanghaitech.edu.cn` 已被 logger.dart 整站屏蔽，这条显式日志等于绕过该策略。
+    log.info("Captcha verify result errorCode: ${result.data["errorCode"]}");
     return result.data["errorCode"] == 1;
   }
 

@@ -512,7 +512,21 @@ class IDSSession {
     }
   }
 
-  String _redirectLogUri(Uri uri) {
+  /// 把**可能含凭据**的跳转 URL 脱敏成可安全写日志的形式。
+  ///
+  /// `checkAndLogin` / `followIDSRedirects` 处理的目标形如
+  /// `https://graduate.shanghaitech.edu.cn/...?ticket=ST-123-abc`，
+  /// **ticket 是一次性登录凭据，绝不能进日志**（日志可被导出）。
+  /// 本方法丢弃全部 query 值，`service` 参数只保留主机与路径。
+  ///
+  /// ⚠️ 新增打印跳转地址的日志时，必须用它包一层，不要直接打印 `$location`。
+  static String redactLocationForLog(String location) {
+    final uri = Uri.tryParse(location);
+    if (uri == null) return '<unparsable redirect target>';
+    return _redirectLogUri(uri);
+  }
+
+  static String _redirectLogUri(Uri uri) {
     final queryKeys = uri.queryParametersAll.keys.toList()..sort();
     final baseUri = _redirectLogBaseUri(uri);
     if (queryKeys.isEmpty) return baseUri;
@@ -533,7 +547,7 @@ class IDSSession {
     return '$baseUri?${queryLabels.join('&')}';
   }
 
-  String _redirectLogBaseUri(Uri uri) => Uri(
+  static String _redirectLogBaseUri(Uri uri) => Uri(
     scheme: uri.scheme,
     host: uri.host,
     port: uri.hasPort ? uri.port : null,

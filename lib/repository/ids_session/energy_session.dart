@@ -206,7 +206,11 @@ class EnergySession extends IDSSession {
       encrypt.AES(encrypt.Key.fromUtf8(_aesKey), mode: encrypt.AESMode.cbc),
     );
     var iv = encrypt.IV.fromUtf8(_iv);
-    log.info("[ElectricitySession][_request] $data ${jsonEncode(data)}");
+    // ⚠️ 不要打印 `data`：调用方会传入 `{"UserID": <学号>}`（见下方
+    // `H5UserIDLogIn`）与 OAuth `code`，属个人信息与会话凭据。
+    log.info(
+      "[ElectricitySession][_request] ${isGetMethod ? "GET" : "POST"} $url",
+    );
     if (isGetMethod) {
       return dio.get(
         url,

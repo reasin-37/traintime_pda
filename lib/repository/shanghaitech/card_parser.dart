@@ -68,7 +68,14 @@ CardEnvelope parseCardEnvelope(Object? rawBody) {
   }
 
   final plain = decryptCardPayload(data);
-  final decoded = jsonDecode(plain);
+  final Object? decoded;
+  try {
+    decoded = jsonDecode(plain);
+  } on FormatException {
+    // 同上：不能把 FormatException 直接抛出去 —— 它的 message 里会带出
+    // **解密后的明文片段**（即真实 PII）并随日志/错误页外流。
+    throw const CardDecryptException('一卡通解密结果不是合法的 JSON（内容已隐去）');
+  }
   if (decoded is! Map) {
     throw const CardDecryptException('一卡通解密结果不是 JSON 对象');
   }
@@ -246,9 +253,17 @@ Map<String, dynamic> _asJsonMap(Object? raw) {
   if (raw is Map<String, dynamic>) return raw;
   if (raw is Map) return raw.cast<String, dynamic>();
   if (raw is String && raw.isNotEmpty) {
-    final decoded = jsonDecode(raw);
-    if (decoded is Map<String, dynamic>) return decoded;
-    if (decoded is Map) return decoded.cast<String, dynamic>();
+    // ⚠️ 必须捕获解析异常：`jsonDecode` 抛的 `FormatException` 会把**出错处的
+    // 源文本片段**拼进 message（Dart 的 FormatException.toString 会带出该行），
+    // 于是登录页 HTML / 错误页内容会随异常一路进日志、错误页，甚至被
+    // 「发邮件给作者」带走。这里统一换成固定文案。
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map<String, dynamic>) return decoded;
+      if (decoded is Map) return decoded.cast<String, dynamic>();
+    } on FormatException {
+      throw const CardDecryptException('一卡通响应不是合法的 JSON 对象（内容已隐去）');
+    }
   }
   throw const CardDecryptException('一卡通响应不是合法的 JSON 对象');
 }

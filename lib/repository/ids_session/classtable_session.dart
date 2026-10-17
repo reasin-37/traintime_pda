@@ -318,7 +318,11 @@ class ClassTableSession extends IDSSession {
       sliderCaptcha: (String cookieStr) =>
           SliderCaptchaClientProvider(cookie: cookieStr).solve(),
     ).then((location) async {
-      log.info("[getClasstable][getEhall] Location: $location");
+      // ⚠️ location 里带 CAS ticket（一次性登录凭据），必须脱敏后再打印。
+      log.info(
+        "[getClasstable][getEhall] Location: "
+        "${IDSSession.redactLocationForLog(location)}",
+      );
       await followIDSRedirects(initialLocation: location, client: dio);
     });
 
@@ -392,7 +396,11 @@ class ClassTableSession extends IDSSession {
         )
         .then((value) => value.data['datas']['cxxsllsywpk']);
 
-    log.info("[getClasstable][getEhall] $notOnTable");
+    // ⚠️ 不要打印整个响应 Map：它含该学生的未排课课程清单。
+    log.info(
+      "[getClasstable][getEhall] notArranged rows="
+      "${notOnTable["rows"] is List ? (notOnTable["rows"] as List).length : 0}",
+    );
     qResult["notArranged"] = notOnTable["rows"];
 
     ClassTableData preliminaryData = ClassTableData();

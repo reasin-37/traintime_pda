@@ -188,9 +188,16 @@ class PrimoLibrarySession {
     if (data is Map<String, dynamic>) return data;
     if (data is Map) return data.cast<String, dynamic>();
     if (data is String && data.isNotEmpty) {
-      final decoded = jsonDecode(data);
-      if (decoded is Map<String, dynamic>) return decoded;
-      if (decoded is Map) return decoded.cast<String, dynamic>();
+      // ⚠️ 见 card_parser.dart 的同类注释：`jsonDecode` 的 FormatException
+      // 会把源文本片段带进 message，403 时 Primo 返回的 HTML 错误页就会
+      // 随异常进日志 / 界面 / 错误页邮件。这里换成固定文案。
+      try {
+        final decoded = jsonDecode(data);
+        if (decoded is Map<String, dynamic>) return decoded;
+        if (decoded is Map) return decoded.cast<String, dynamic>();
+      } on FormatException {
+        throw const PrimoLibraryException('图书馆返回了无法识别的响应格式（内容已隐去）');
+      }
     }
     throw const PrimoLibraryException('图书馆返回了无法识别的响应格式');
   }

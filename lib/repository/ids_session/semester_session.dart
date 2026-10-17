@@ -20,7 +20,8 @@ class SemesterSession extends IDSSession {
 
     log.info(
       "[PersonalInfoSession][getSemesterInfoYjspt] "
-      "Location is $location",
+      // ⚠️ location 里带 CAS ticket（一次性登录凭据），必须脱敏后再打印。
+      "Location is ${IDSSession.redactLocationForLog(location)}",
     );
     await followIDSRedirects(initialLocation: location, client: dio);
 

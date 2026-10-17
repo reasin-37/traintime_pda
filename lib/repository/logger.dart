@@ -19,9 +19,37 @@ final log = TalkerFlutter.init();
 ///   `lib/repository/shanghaitech/card_parser.dart`）；且其页面 HTML 内联了
 ///   会话凭据 `openid`（隐藏字段），URL 与 Referer 里也会带上它。
 ///   因该 host 下**全部**流量都与此类信息相关，故整站屏蔽日志。
+/// - `graduate.shanghaitech.edu.cn`：研究生门户。响应含姓名/院系/生日，且
+///   成绩、考试、课表接口把**学号**放在 URL（`exam_session.dart` 的
+///   `querySetting`）或请求体（`{'XH': 学号}`）里，故整站屏蔽。
+/// - `discovery.lib.shanghaitech.edu.cn`：Primo 检索，其
+///   `guestJwt` 接口的**响应体就是令牌**（`primo_library_session.dart`）。
+/// - 西电遗留域（`ehall` / `zfw` / `w` / `tybjxgl` / `ignypt` / `xxcapp` /
+///   `v8scan` / `ids.xidian.edu.cn`）：请求体或响应体含**学号、姓名、余额、
+///   会话 token**（见 `schoolnet_session.dart`、`xidian_sport_session.dart`、
+///   `energy_session.dart`）。这些模块虽已从界面移除，但代码仍可被调用，
+///   故一并屏蔽。
+/// - `mfindxidian.libsp.cn` / `tyrzfw.chaoxing.com`：西电图书馆 OPAC 与超星
+///   CAS，请求头携带 OPAC JWT、查询串携带 CAS 断言数据
+///   （`library_session.dart` 的 `jwtOpacAuth` 头与 `jwt=` 参数）。
+///
+/// ⚠️ **这是黑名单，新增域名必须同步登记**；漏登记即等于把该域全部流量
+/// 写进可导出的日志。新增接口时请先在这里加一行。
 const Set<String> _sensitiveHosts = {
   'ids.shanghaitech.edu.cn',
   'card.shanghaitech.edu.cn',
+  'graduate.shanghaitech.edu.cn',
+  'discovery.lib.shanghaitech.edu.cn',
+  'ehall.xidian.edu.cn',
+  'zfw.xidian.edu.cn',
+  'w.xidian.edu.cn',
+  'tybjxgl.xidian.edu.cn',
+  'ignypt.xidian.edu.cn',
+  'xxcapp.xidian.edu.cn',
+  'v8scan.xidian.edu.cn',
+  'ids.xidian.edu.cn',
+  'mfindxidian.libsp.cn',
+  'tyrzfw.chaoxing.com',
 };
 
 /// URL 查询参数中出现即视为敏感的键（小写比较）。
@@ -41,6 +69,10 @@ const Set<String> _sensitiveQueryKeys = {
 /// `referer` 需要特别处理：一卡通业务请求的 Referer 形如
 /// `…/servicehall/casClient/login?openid=<凭据>`，**值里带会话凭据**。
 /// Talker 的 `hiddenHeaders` 只匹配头名，无法按值过滤，故只能整头屏蔽。
+///
+/// `jwtopacauth` / `jwt` / `token` 是各图书馆 / 体育系统把会话令牌放在
+/// **自定义头**里的键名（如 `library_session.dart` 的 `jwtOpacAuth: _token`），
+/// 不登记就会被原样打印。
 const Set<String> _sensitiveHeaderNames = {
   'authorization',
   'cookie',
@@ -48,6 +80,10 @@ const Set<String> _sensitiveHeaderNames = {
   'proxy-authorization',
   'referer',
   'referrer',
+  'jwtopacauth',
+  'jwt',
+  'token',
+  'x-csrf-token',
 };
 
 bool _isSensitiveNetworkRequest(Uri uri) {
@@ -63,7 +99,13 @@ final logDioAdapter = TalkerDioLogger(
   talker: log,
   settings: TalkerDioLoggerSettings(
     printRequestHeaders: true,
-    printResponseHeaders: true,
+    // ⚠️ 响应头**必须关**：talker_dio_logger 5.1.20 只在打印**请求**头时调用
+    // `_replaceHiddenHeaders`，打印响应头（`dio_logs.dart` 的 DioResponseLog /
+    // DioErrorLog）是**直接照抄**的，`hiddenHeaders` 里的 `set-cookie` 对响应头
+    // 完全无效。开启即等于把各站的 `Set-Cookie`（会话凭据）写进日志。
+    // 参考：`dio_logs.dart:59-62, 75-89`（请求头有脱敏）对比 `:146-148, 216-218`（响应头无）。
+    printResponseHeaders: false,
+    printErrorHeaders: false,
     printResponseMessage: true,
     hiddenHeaders: _sensitiveHeaderNames,
     requestFilter: (request) => !_isSensitiveNetworkRequest(request.uri),

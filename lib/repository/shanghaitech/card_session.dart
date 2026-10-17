@@ -64,7 +64,16 @@ class CardSession extends IDSSession {
   String? _openId;
 
   /// 缓存的 CAS 跳转目标（`checkAndLogin` 的返回值，含 ticket）。
+  ///
+  /// ⚠️ **ticket 是一次性的**：`followIDSRedirects` 消费掉它之后必须立刻置空，
+  /// 否则下一次 `ensureOpenId` 会拿这张用过的 ticket 去换 openid，服务端只会
+  /// 返回错误页，而缓存的 `_pendingLocation` 会一直让流程跳过 `checkAndLogin`
+  /// ——表现为「一卡通一直打不开，重启 App 才好」。
   String? _pendingLocation;
+
+  /// 正在进行的初始化。并发的 `ensureOpenId`（如 `reloadAll` 同时拉账户与流水）
+  /// 必须合并为一次，否则会**同时发起两次 CAS 登录并各解一次滑块验证码**。
+  Future<String>? _ensureFuture;
 
   CardSession();
 
@@ -85,10 +94,26 @@ class CardSession extends IDSSession {
   Future<String> ensureOpenId({
     bool forceRefresh = false,
     Future<void> Function(String cookieStr)? sliderCaptcha,
-  }) async {
+  }) {
     final cached = _openId;
-    if (!forceRefresh && cached != null && cached.isNotEmpty) return cached;
+    if (!forceRefresh && cached != null && cached.isNotEmpty) {
+      return Future.value(cached);
+    }
 
+    final pending = _ensureFuture;
+    if (!forceRefresh && pending != null) return pending;
+
+    late final Future<String> future;
+    future = _ensureOpenIdOnce(sliderCaptcha: sliderCaptcha).whenComplete(() {
+      if (identical(_ensureFuture, future)) _ensureFuture = null;
+    });
+    _ensureFuture = future;
+    return future;
+  }
+
+  Future<String> _ensureOpenIdOnce({
+    Future<void> Function(String cookieStr)? sliderCaptcha,
+  }) async {
     final solve = sliderCaptcha ??
         (String cookieStr) =>
             SliderCaptchaClientProvider(cookie: cookieStr).solve();
@@ -125,6 +150,8 @@ class CardSession extends IDSSession {
       log.handle(e, s, '[CardSession][ensureOpenId] followIDSRedirects 失败');
       throw CardSessionException('一卡通 SSO 跳转失败：$e', needsLogin: true);
     }
+    // ticket 已被消费，不能再用第二次。
+    _pendingLocation = null;
 
     // 3) 取入口页并提取 openid
     try {
@@ -171,8 +198,9 @@ class CardSession extends IDSSession {
   /// [method] 为接口名（如 `getCardUserInfoByIdserial`）；[body] 为请求体（明文 JSON）。
   Future<CardEnvelope> _post(String method, Map<String, dynamic> body) async {
     final openId = await ensureOpenId();
+    final Response<dynamic> response;
     try {
-      final response = await dio.post<dynamic>(
+      response = await dio.post<dynamic>(
         '$businessBaseUrl/$method',
         queryParameters: {'openid': openId},
         data: body,
@@ -186,7 +214,6 @@ class CardSession extends IDSSession {
           },
         ),
       );
-      return parseCardEnvelope(response.data);
     } on DioException catch (e, s) {
       log.handle(e, s, '[CardSession][$method] Have issue');
       // 会话可能失效：清掉缓存，下次调用会重新走一遍 SSO
@@ -194,7 +221,35 @@ class CardSession extends IDSSession {
       if (code == 401 || code == 403) {
         clearSession();
       }
-      throw CardSessionException('一卡通接口 $method 调用失败：${e.message ?? e.type.name}');
+      throw CardSessionException(
+        '一卡通接口 $method 调用失败：${e.message ?? e.type.name}',
+        needsLogin: code == 401 || code == 403,
+      );
+    }
+
+    // ⚠️ `idsDio` 是 `followRedirects: false` + `validateStatus: <400`，
+    // 所以 3xx **不会抛异常，也不会被跟随**，而是当作「成功响应」直接返回。
+    // 会话过期时服务端正是回 302 把我们指回统一认证（响应体为空），
+    // 若不在这里判定，调用方只会拿到一句「响应不是合法的 JSON」，
+    // 且 `_openId` 永不清除 —— 表现为一卡通长期打不开。
+    final status = response.statusCode ?? 0;
+    if (status >= 300 && status < 400) {
+      clearSession();
+      throw CardSessionException(
+        '一卡通会话已失效（HTTP $status，服务端要求重新登录）',
+        needsLogin: true,
+      );
+    }
+
+    try {
+      return parseCardEnvelope(response.data);
+    } catch (e, s) {
+      // 解析/解密失败也可能是会话漂移（返回登录页 HTML 等）。
+      // 消息里**不带响应体内容**，避免把页面片段带进日志或错误页邮件。
+      log.handle(e, s, '[CardSession][$method] 响应解析失败');
+      throw CardSessionException(
+        '一卡通接口 $method 返回了无法解析的内容：$e',
+      );
     }
   }
 

@@ -78,12 +78,13 @@ class ActivitySession extends IDSSession {
 
     final body = response.data;
     if (body is! Map) {
-      // 把服务端实际返回的片段带进异常，方便在界面上直接看出是登录页、
-      // 错误页还是别的格式。
-      final raw = body?.toString() ?? '(空正文)';
-      final snippet = raw.length > 160 ? '${raw.substring(0, 160)}…' : raw;
+      // ⚠️ 这里**不能**把响应体片段塞进异常消息：该异常会经 `log.handle`
+      // 进日志、经 `ReloadWidget` 显示在界面，还会被 Catcher2 的错误页
+      // 「发送」按钮带进邮件。服务端此时返回的往往是**已登录的用户页面**，
+      // 片段里可能含姓名/学号。故只保留可判定故障类型的元信息。
       throw ActivityFetchException(
-        '听报告登记返回了非预期的数据格式（HTTP ${response.statusCode}）：$snippet',
+        '听报告登记返回了非预期的数据格式（HTTP ${response.statusCode}，'
+        '${body == null ? '空正文' : body.runtimeType}）',
       );
     }
     return FetchResult.fresh(
